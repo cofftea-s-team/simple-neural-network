@@ -10,6 +10,7 @@
 #include "utils.hpp"
 #include "linear.hpp"
 #include "losses.hpp"
+#include "optimizers.hpp"
 
 namespace network {
 
@@ -18,6 +19,10 @@ namespace network {
 	public:
 		using linears = typename evens<std::tuple<_Args...>>::type;
 		using activations = typename odds<std::tuple<_Args...>>::type;
+
+		nnetwork() {
+			sgd::layer_count = sizeof...(_Args);
+		}
 
 		template <size_t _Batch, size_t M>
 		auto forward(const tensor<_Batch, M>& _Input) {
