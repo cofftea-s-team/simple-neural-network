@@ -21,13 +21,15 @@ namespace network {
 
 		template <size_t _Batch, size_t M>
 		auto forward(const tensor<_Batch, M>& _Input) {
-			_Clear_results(); // clear prev tensors
+			for (int i = 0; i < _Forward_results.size(); ++i) {
+				if ((i & 1) == 0) delete _Forward_results[i];
+			}
+			_Forward_results.clear();
 			_Forward_results.push_back(reinterpret_cast<any_tensor*>(new auto(_Input)));
 			for_each([&]<size_t N1, size_t M1>(const linear<N1, M1>& _Layer, auto&& _Fn) -> void {
 				auto& t = *reinterpret_cast<tensor<_Batch, N1>*>(_Forward_results.back());
-				auto fwd = _Layer.forward(t);
 				_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(&t));
-				_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(new auto(_Fn.forward_apply(move(fwd)))));
+				_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(new auto(_Fn.forward_apply(_Layer.forward(t)))));
 			});
 
 			return return_last<_Batch>(std::get<std::tuple_size_v<linears> - 1>(_Layers));
@@ -36,7 +38,7 @@ namespace network {
 		auto backward(const tensor<_Batch, M>& _Output) {
 			auto& _Preds = *reinterpret_cast<tensor<_Batch, M>*>(_Forward_results.back());
 			_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(new auto(_Loss_fn::backward(_Preds, _Output))));
-			for_each<false>([&]<size_t N1, size_t M1>(linear<N1, M1>& _Layer, auto&& _Fn) -> void {
+			for_each<false, std::tuple_size_v<linears> - 1>([&]<size_t N1, size_t M1>(linear<N1, M1>& _Layer, auto&& _Fn) -> void {
 				auto& err = *reinterpret_cast<tensor<_Batch, M1>*>(_Forward_results.back()); // error
 				_Forward_results.pop_back();
 				auto& fwd = *reinterpret_cast<tensor<_Batch, M1>*>(_Forward_results.back()); // wyjscie z aktywacyjnej
@@ -54,12 +56,13 @@ namespace network {
 				delete &err;
 				delete &fwd;
 			});
-			_Clear_results();
+			for (auto&& ptr : _Forward_results) delete ptr;
+			_Forward_results.clear();
 		}
 
 	private:
 		template <size_t _Batch, size_t N, size_t M>
-		inline auto return_last(linear<N, M>) {
+		inline auto& return_last(linear<N, M>) {
 			return *reinterpret_cast<tensor<_Batch, M>*>(_Forward_results.back());
 		}
 
@@ -68,7 +71,7 @@ namespace network {
 			for_each(_Lambda&& _Func)
 		{ }
 
-		template<bool _Increment = true, int I = _Increment ? 0 : std::tuple_size_v<linears> - 1, class _Lambda>
+		template<bool _Increment = true, int I = 0, class _Lambda>
 		inline typename std::enable_if<I < std::tuple_size_v<linears> && I >= 0, void>::type
 			for_each(_Lambda&& _Func)
 		{
@@ -76,25 +79,19 @@ namespace network {
 			auto& fn = std::get<I>(_Fns);
 
 			_Func(layer, fn);
-
-			if constexpr (_Increment)
+			
+			if constexpr (_Increment) {
 				for_each<true, I + 1>(_Func);
-			else
+			} else {
 				for_each<false, I - 1>(_Func);
-		}
-		inline void _Clear_results() {
-			for (auto&& ptr : _Forward_results) {
-				delete ptr;
 			}
-			_Forward_results.clear();
 		}
-		
 		using any_tensor = _Empty;
 		
 		linears _Layers;
 		activations _Fns;
 		vector<any_tensor*> _Forward_results;
-		vector<any_tensor*> _Backward_results;
+	//	vector<any_tensor*> _Backward_results;
 	};
 }
 

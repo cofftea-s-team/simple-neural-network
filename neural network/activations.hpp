@@ -53,22 +53,23 @@ namespace network {
 		}
 	};
 
-	struct softmax {
+	struct softmax : public base_activation {
 		template <range _Range>
 		inline auto forward_apply(const _Range& _Rng) const {
 			_Range _Res = _Rng;
-			for (auto&& e : _Res) e = std::exp(e);
-			double _Sum = ::utils::sum(_Res.begin(), _Res.end());
-			for (auto&& e : _Res) e /= _Sum;
-			return _Res;
-		}
-		template <range _Range>
-		inline auto backward_apply(const _Range& _Preds) const {
-			_Range _Res = _Preds;
-			for (auto&& e : _Res) {
-				e = e * (1 - e);
+			for (int i = 0; i < _Res.rows(); ++i) {
+				for (auto&& e : _Res[i]) e = std::exp(e);
+				double _Sum = ::utils::sum(_Res[i], _Res[i] + _Res.columns());
+				for (auto&& e : _Res[i]) e /= _Sum;
 			}
 			return _Res;
+			
+		}
+		constexpr double forward(double x) const override {
+			return x;
+		}
+		constexpr double backward(double x) const override {
+			return x * (1 - x);
 		}
 	};
 

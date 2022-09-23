@@ -16,7 +16,7 @@ namespace network {
 			for (; _It != _Preds.end(); ++_It, ++_It2) {
 				_Sum += *_It2 * std::log(*_It);
 			}
-			return -_Sum;
+			return -_Sum / _Preds.rows();
 		}
 		template <size_t N, size_t M>
 		static constexpr auto backward(const tensor<N, M>& _Preds, const tensor<N, M>& _Output) {
@@ -43,7 +43,19 @@ namespace network {
 			for (; _It != _Preds.end(); ++_It, ++_It2) {
 				_Sum += std::pow(*_It - *_It2, 2);
 			}
-			return _Sum / 2;
+			return _Sum / _Preds.rows() / 2;
+		}
+		template <size_t N, size_t M>
+		static constexpr auto backward(const tensor<N, M>& _Preds, const tensor<N, M>& _Output) {
+			auto _Res = _Preds;
+			for (int i = 0; i < N; ++i) {
+				for (int j = 0; j < M; ++j) {
+					_Res[i][j] -= _Output[i][j];
+					_Res[i][j] *= 2;
+					_Res[i][j] /= N;
+				}
+			}
+			return _Res;
 		}
 	};
 	constexpr mse_loss mse;

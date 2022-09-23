@@ -47,7 +47,7 @@ namespace network {
 			return v < 0 ? 0 : v > 1 ? 1 : v;
 		};
 		for (auto& _Val : _Rng) {
-			_Val = next() - 0.5;
+			_Val = next() - .5;
 		}
 	};
 

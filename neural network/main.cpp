@@ -21,25 +21,25 @@ using namespace pipeline;
 
 int main()
 {
+	std::ios_base::sync_with_stdio(false);
+	std::cin.tie(0);
 	nnetwork<
 		linear<784, 16>,
 		relu,
-		linear<16, 32>,
-		relu,
-		linear<32, 16>,
-		relu,
 		linear<16, 10>,
-		sigmoid
+		softmax
 	> net;
 	
 	sizeof(net);
 
 	ifstream x_file("train_x.txt");
-	ifstream y_file("train_x.txt");
+	x_file.tie(0);
+	ifstream y_file("train_y.txt");
+	y_file.tie(0);
 
-	constexpr int batch = 8;
+	constexpr int batch = 16;
 	
-	progress_bar bar(6250);
+	progress_bar bar(64);
 	while (bar) {
 		tensor<batch, 784> train_data;
 		tensor<batch, 10> train_results(0);
@@ -51,25 +51,29 @@ int main()
 			y_file >> x;
 			train_results[i][x] = 1;
 		}
-
-		for (int i = 0; i < 1000; ++i) {
+		for (int i = 0; i < 1500; ++i) {
 			auto preds = net.forward(train_data);
-			net.backward<xentropy_loss, sgd>(train_results);
+			net.backward<mse_loss, sgd>(train_results);
 		}
 		
 		auto preds = net.forward(train_data);
-		net.backward<xentropy_loss, sgd>(train_results);
-		bar.update(xentropy.compute(preds, train_results));
+		net.backward<mse_loss, sgd>(train_results);
+		bar.update(mse.compute(preds, train_results));
 	}
+	x_file.close();
+	y_file.close();
 	
-	
+	ifstream x_test_file("test_x.txt");
+	ifstream y_test_file("test_y.txt");
 
 
-	
-	
 
-
-	
-	
+	// provide the test
+	ifstream test("5.txt");
+	tensor<1, 784> data;
+	for (int i = 0; i < 784; ++i) {
+		test >> data[0][i];
+	}
+	net.forward(data).print();
 
 }

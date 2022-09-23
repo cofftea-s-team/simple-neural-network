@@ -14,6 +14,6 @@ namespace network {
 			}
 		}
 
-		static constexpr double learning_rate = 0.1;
+		static constexpr double learning_rate = 0.05;
 	};
 }
