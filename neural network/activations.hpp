@@ -62,6 +62,12 @@ namespace network {
 				double _Sum = ::utils::sum(_Res[i], _Res[i] + _Res.columns());
 				for (auto&& e : _Res[i]) e /= _Sum;
 			}
+			// check for NaN
+			for (auto&& e : _Res) {
+				if (std::isnan(e)) {
+					std::cout << "NaN detected in softmax forward pass" << std::endl;
+				}
+			}
 			return _Res;
 			
 		}
