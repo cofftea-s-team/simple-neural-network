@@ -1,5 +1,4 @@
 ﻿// neural network.cpp : Ten plik zawiera funkcję „main”. W nim rozpoczyna się i kończy wykonywanie programu.
-//
 
 #include <iostream>
 #include <iomanip>
@@ -14,30 +13,31 @@ using std::ofstream;
 #include "activations.hpp"
 #include "losses.hpp"
 #include "optimizers.hpp"
+
+#include <Windows.h>
 #include "progress_bar.h"
 
 using namespace network;
 using namespace pipeline;
 
+
 int main()
 {
 	std::ios_base::sync_with_stdio(false);
 	std::cin.tie(0);
-	nnetwork<
+	auto obj = new nnetwork<
 		linear<784, 16>,
 		relu,
 		linear<16, 10>,
 		softmax
-	> net;
-	
+	>();
+	auto& net = *obj;
 	sizeof(net);
 
 	ifstream x_file("train_x.txt");
-	x_file.tie(0);
 	ifstream y_file("train_y.txt");
-	y_file.tie(0);
 
-	constexpr int batch = 16;
+	constexpr int batch = 32;
 	
 	progress_bar bar(64);
 	while (bar) {
@@ -51,14 +51,14 @@ int main()
 			y_file >> x;
 			train_results[i][x] = 1;
 		}
-		for (int i = 0; i < 1500; ++i) {
+		for (int i = 0; i < 4500; ++i) {
 			auto preds = net.forward(train_data);
-			net.backward<mse_loss, sgd>(train_results);
+			net.backward<xentropy_loss, sgd>(train_results);
 		}
 		
 		auto preds = net.forward(train_data);
-		net.backward<mse_loss, sgd>(train_results);
-		bar.update(mse.compute(preds, train_results));
+		net.backward<xentropy_loss, sgd>(train_results);
+		bar.update([](double x) { cout << "loss: " << x; }, xentropy.compute(preds, train_results));
 	}
 	x_file.close();
 	y_file.close();
