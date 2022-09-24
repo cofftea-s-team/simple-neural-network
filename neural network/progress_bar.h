@@ -85,6 +85,12 @@ namespace __Progress_bar {
 			_Print_estimated_time();
 			return true;
 		}
+		inline void clear() {
+			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y);
+			for (int i = 0; i < _Bar_length + _Post_text_length + 4; ++i)
+				cout << bg_char;
+			_Clear_estimated_time();
+		}
 		constexpr size_t size() const noexcept {
 			return _Max;
 		}
