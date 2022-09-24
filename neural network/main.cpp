@@ -19,12 +19,18 @@ using std::ofstream;
 
 using namespace network;
 using namespace pipeline;
+#include <deque>
 
+template <size_t _Batch, size_t M>
+inline double accuracy(const tensor<_Batch, M>& _Predictions, const tensor<_Batch, M>& _Targets) {
+	
+}
 
 int main()
 {
 	std::ios_base::sync_with_stdio(false);
 	std::cin.tie(0);
+	cout << std::fixed << std::setprecision(5);
 	auto obj = new nnetwork<
 		linear<784, 16>,
 		relu,
@@ -37,9 +43,9 @@ int main()
 	ifstream x_file("train_x.txt");
 	ifstream y_file("train_y.txt");
 
-	constexpr int batch = 32;
+	constexpr int batch = 16;
 	
-	progress_bar bar(64);
+	progress_bar bar(32);
 	while (bar) {
 		tensor<batch, 784> train_data;
 		tensor<batch, 10> train_results(0);
@@ -51,14 +57,18 @@ int main()
 			y_file >> x;
 			train_results[i][x] = 1;
 		}
-		for (int i = 0; i < 4500; ++i) {
+		for (int i = 0; i < 3000; ++i) {
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, sgd>(train_results);
 		}
 		
 		auto preds = net.forward(train_data);
 		net.backward<xentropy_loss, sgd>(train_results);
-		bar.update([](double x) { cout << "loss: " << x; }, xentropy.compute(preds, train_results));
+		bar.update([](double x, double y, double z) { 
+				cout << "loss: " << x << ", lr: " << y << ", acc: " << z; 
+			}, 
+			xentropy.compute(preds, train_results), sgd::current_lr, accuracy(preds, train_results)
+		);
 	}
 	x_file.close();
 	y_file.close();
