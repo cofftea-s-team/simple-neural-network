@@ -23,7 +23,21 @@ using namespace pipeline;
 
 template <size_t _Batch, size_t M>
 inline double accuracy(const tensor<_Batch, M>& _Predictions, const tensor<_Batch, M>& _Targets) {
-	
+	double correct = 0;
+	for (size_t i = 0; i < _Batch; ++i) {
+		auto max = _Predictions[i][0];
+		size_t max_index = 0;
+		for (size_t j = 1; j < M; ++j) {
+			if (_Predictions[i][j] > max) {
+				max = _Predictions[i][j];
+				max_index = j;
+			}
+		}
+		if (_Targets[i][max_index] == 1) {
+			++correct;
+		}
+	}
+	return correct / _Batch;
 }
 
 int main()
@@ -40,50 +54,53 @@ int main()
 	auto& net = *obj;
 	sizeof(net);
 
-	ifstream x_file("train_x.txt");
-	ifstream y_file("train_y.txt");
-
-	constexpr int batch = 16;
+	constexpr int batch = 256;
+	constexpr int _Epoch = 40;
 	
-	progress_bar bar(32);
-	while (bar) {
-		tensor<batch, 784> train_data;
-		tensor<batch, 10> train_results(0);
-		for (int i = 0; i < batch; ++i) {
-			for (int j = 0; j < 784; ++j) {
-				x_file >> train_data[i][j];
+	for (int epoch = 0; epoch < _Epoch; ++epoch) {
+		progress_bar bar(32);
+		ifstream x_file("train_x.txt");
+		ifstream y_file("train_y.txt");
+		while (bar) {
+			tensor<batch, 784> train_data;
+			tensor<batch, 10> train_results(0);
+			for (int i = 0; i < batch; ++i) {
+				for (int j = 0; j < 784; ++j) {
+					x_file >> train_data[i][j];
+				}
+				int x;
+				y_file >> x;
+				train_results[i][x] = 1;
 			}
-			int x;
-			y_file >> x;
-			train_results[i][x] = 1;
-		}
-		for (int i = 0; i < 3000; ++i) {
+
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, sgd>(train_results);
+			bar.update([](double x, double y, double z) {
+				cout << "loss: " << x << ", lr: " << y << ", acc: " << z;
+				},
+				xentropy.compute(preds, train_results), sgd::current_lr, accuracy(preds, train_results)
+					);
 		}
-		
-		auto preds = net.forward(train_data);
-		net.backward<xentropy_loss, sgd>(train_results);
-		bar.update([](double x, double y, double z) { 
-				cout << "loss: " << x << ", lr: " << y << ", acc: " << z; 
-			}, 
-			xentropy.compute(preds, train_results), sgd::current_lr, accuracy(preds, train_results)
-		);
+		x_file.close();
+		y_file.close();
 	}
-	x_file.close();
-	y_file.close();
-	
-	ifstream x_test_file("test_x.txt");
-	ifstream y_test_file("test_y.txt");
 
-
-
-	// provide the test
-	ifstream test("5.txt");
-	tensor<1, 784> data;
-	for (int i = 0; i < 784; ++i) {
-		test >> data[0][i];
+	ifstream x_valid("train_x.txt");
+	ifstream y_valid("train_y.txt");
+	tensor<10000, 784> x_valid_tensor;
+	tensor<10000, 10> y_valid_tensor;
+	for (int i = 0; i < 10000; ++i) {
+		for (int j = 0; j < 784; ++j) {
+			x_valid >> x_valid_tensor[i][j];
+		}
+		int y;
+		y_valid >> y;
+		y_valid_tensor[i][y] = 1;
 	}
-	net.forward(data).print();
+	x_valid.close();
+	y_valid.close();
+
+	auto preds = net.forward(x_valid_tensor);
+	cout << "accuracy: " << accuracy(preds, y_valid_tensor) << endl;
 
 }
