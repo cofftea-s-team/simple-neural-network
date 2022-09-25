@@ -78,11 +78,13 @@ namespace __Progress_bar {
 			_Post_text_fn(forward<_FnArgs>(_Args)...);
 			_Post_text_length = _Get_cursor_pos().X - _Begin_pos.X - _Bar_length - 1;
 			
-			if (_Curr == _Max) {
+			if (_Curr > _Max >> 4) {
+				_Print_estimated_time();
+			} else if (_Curr == _Max) {
 				_Finish();
 				return false;
 			}
-			_Print_estimated_time();
+			
 			return true;
 		}
 		inline void clear() {
@@ -130,7 +132,7 @@ namespace __Progress_bar {
 		}
 		inline void _Clear_estimated_time() const {
 			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y + 1);
-			for (size_t i = 0; i < 35; ++i)
+			for (size_t i = 0; i < 40; ++i)
 				cout << bg_char;
 		}
 		inline void _Finish() const {

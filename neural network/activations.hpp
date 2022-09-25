@@ -8,16 +8,13 @@ namespace network {
 	
 	struct base_activation {
 		template <range _Range>
-		inline auto forward_apply(const _Range& _Rng) const {
-			_Range _Res = _Rng;
-			for (auto&& e : _Res) e = forward(e);
-			return _Res;
+		inline void forward_apply(_Range& _Rng) const {
+			for (auto&& e : _Rng) 
+				e = forward(e);
 		}
 		template <range _Range>
-		inline auto backward_apply(const _Range& _Rng) const {
-			_Range _Res = _Rng;
-			for (auto&& e : _Res) e = backward(e);
-			return _Res;
+		inline void backward_apply(_Range& _Rng) const {
+			for (auto&& e : _Rng) e = backward(e);
 		}
 		virtual inline double forward(double x) const = 0;
 		virtual inline double backward(double x) const = 0;
@@ -55,21 +52,18 @@ namespace network {
 
 	struct softmax : public base_activation {
 		template <range _Range>
-		inline auto forward_apply(const _Range& _Rng) const {
-			_Range _Res = _Rng;
-			for (int i = 0; i < _Res.rows(); ++i) {
-				for (auto&& e : _Res[i]) e = std::exp(e);
-				double _Sum = ::utils::sum(_Res[i], _Res[i] + _Res.columns());
-				for (auto&& e : _Res[i]) e /= _Sum;
+		inline void forward_apply(_Range& _Rng) const {
+			for (int i = 0; i < _Rng.rows(); ++i) {
+				for (auto&& e : _Rng[i]) e = std::exp(e);
+				double _Sum = ::utils::sum(_Rng[i], _Rng[i] + _Rng.columns());
+				for (auto&& e : _Rng[i]) e /= _Sum;
 			}
 			// check for NaN
-			for (auto&& e : _Res) {
+			/*for (auto&& e : _Rng) {
 				if (std::isnan(e)) {
 					std::cout << "NaN detected in softmax forward pass" << std::endl;
 				}
-			}
-			return _Res;
-			
+			}*/
 		}
 		constexpr double forward(double x) const override {
 			return x;

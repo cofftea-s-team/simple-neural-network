@@ -152,6 +152,7 @@
     <ClInclude Include="linear.hpp" />
     <ClInclude Include="losses.hpp" />
     <ClInclude Include="network.hpp" />
+    <ClInclude Include="nnfile.hpp" />
     <ClInclude Include="optimizers.hpp" />
     <ClInclude Include="progress_bar.h" />
     <ClInclude Include="utils.hpp" />
