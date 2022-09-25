@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 *.txt
 neural network/main.cpp
+*.cofftea
