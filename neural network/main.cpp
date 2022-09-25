@@ -90,13 +90,13 @@ int main()
 				train_results[i][x] = 1;
 			}
 			auto preds = net.forward(train_data);
-			net.backward<xentropy_loss, sgd>(train_results);
+			net.backward<xentropy_loss, adam>(train_results);
 			if (_Iter % 20 == 0) {
 				bar.update([](double x, double y, double z, int e) {
 					cout << "loss: " << x << ", lr: " << y << ", acc: " << z << ", epochs: " << e;
 					},
 					xentropy.compute(preds, train_results),
-						sgd::current_lr,
+						adam::current_lr,
 						accuracy(preds, train_results),
 						epoch
 						);
