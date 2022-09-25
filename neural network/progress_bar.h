@@ -1,12 +1,13 @@
 #pragma once
 
 #include <iostream>
-namespace __Progress_bar {
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
+#define NOMINMAX
 #include <Windows.h>
 #endif // _WIN32
+namespace __Progress_bar {
 
 	inline void _Show_console_cursor(const bool show) {
 #if defined(_WIN32)
@@ -80,7 +81,8 @@ namespace __Progress_bar {
 			
 			if (_Curr > _Max >> 4) {
 				_Print_estimated_time();
-			} else if (_Curr == _Max) {
+			} 
+			if (_Curr == _Max) {
 				_Finish();
 				return false;
 			}
@@ -138,8 +140,8 @@ namespace __Progress_bar {
 		inline void _Finish() const {
 			_Clear_estimated_time();
 			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y);
-			cout << endl;
 			SetConsoleOutputCP(_Prev_cp);
+			cout << endl;
 			_Show_console_cursor(true);
 		}
 		int _Prev_cp;

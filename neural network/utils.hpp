@@ -34,14 +34,14 @@ namespace network {
 			std::declval<typename zero_or_one<Is % 2 == 1>::template type<Es>>()...
 		));
 	};
-	
+
 	using pipeline::range;
 
 	template <range _Range>
 	inline void fill_randn(_Range& _Rng) {
 		std::mt19937 engine(time(NULL));
 		std::normal_distribution<double> normal(0, 1);
-		
+
 		for (auto& _Val : _Rng) {
 			_Val = normal(engine) * 0.1;
 		}
@@ -49,4 +49,18 @@ namespace network {
 
 	template <size_t N, size_t M>
 	using tensor = matrix<double, N, M>;
+
+#ifdef _STD
+}
+#include <sstream>
+namespace network {
+	template <class... Args>
+	constexpr _STD string to_string(Args&&... _Args) {
+		static_assert(sizeof...(_Args) != 0, "to_string() requires at least one argument");
+
+		_STD ostringstream _Oss;
+		(_Oss << ... << _Args);
+		return _Oss.str();
+	}
+#endif
 }

@@ -14,6 +14,7 @@ using std::ofstream;
 #include "losses.hpp"
 #include "optimizers.hpp"
 
+#include <colors.h>
 #include "progress_bar.h"
 #include "nnfile.hpp"
 
@@ -43,11 +44,12 @@ inline double accuracy(const tensor<_Batch, M>& _Predictions, const tensor<_Batc
 }
 
 bool confirm_save() {
-	cout << "save data to file? (Y/N)" << endl;
+	cout << "save data to file? (Y/N) ";
 	char input;
 	std::cin >> input;
 	return input == 'Y' || input == 'y';
 }
+
 
 int main()
 {
@@ -64,15 +66,18 @@ int main()
 	>();
 	auto& net = *obj;
 	sizeof(net);
-	nnfile().load(net, "netdata.cofftea");
+	//nnfile().load(net, "netdata.cofftea");
 	//net.reset_layers<2>();
-	//net.freeze_layers<0, 1, 2>();
+	//net.freeze_layers<0>();
 	ifstream x_file("train_x.txt");
 	ifstream y_file("train_y.txt");
 
-	constexpr int batch = 16;
+	constexpr int batch = 512;
+	sgd::lr = 0.6;
+	sgd::decay = 0.00005;
 	
-	progress_bar bar(90);
+
+	progress_bar bar(30);
 	while (bar) {
 		tensor<batch, 784> train_data;
 		tensor<batch, 10> train_results(0);
@@ -85,15 +90,15 @@ int main()
 			y_file >> x;
 			train_results[i][x] = 1;
 		}
-		//for (int j = 0; j < 10; ++j) {
-		//	ifstream test(char(j + '0') + std::string(".txt"));
-		//	for (int i = 0; i < 784; ++i) {
-		//		test >> train_data[j][i];
-		//	}
-		//	train_results[j][j] = 1;
-		//	test.close();
-		//}
-		for (int i = 0; i < 64; ++i) {
+		/*for (int j = 0; j < 10; ++j) {
+			ifstream test(char(j + '0') + std::string(".txt"));
+			for (int i = 0; i < 784; ++i) {
+				test >> train_data[j][i];
+			}
+			train_results[j][j] = 1;
+			test.close();
+		}*/
+		for (int i = 0; i < 8; ++i) {
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, sgd>(train_results);
 		}
@@ -122,7 +127,7 @@ int main()
 	using std::string;
 	tensor<10, 784> data;
 	for (int j = 0; j < 10; ++j) {
-		ifstream test(char(j + '0') + string(".txt"));
+		ifstream test(to_string(j, ".txt"));
 		for (int i = 0; i < 784; ++i) {
 			test >> data[j][i];
 		}
