@@ -14,7 +14,6 @@ using std::ofstream;
 #include "losses.hpp"
 #include "optimizers.hpp"
 
-#include <colors.h>
 #include "progress_bar.h"
 
 using namespace network;
@@ -52,13 +51,13 @@ int main()
 {
 	std::ios_base::sync_with_stdio(false);
 	std::cin.tie(0);
-	cout << std::fixed << std::setprecision(5);
+	cout << std::fixed << std::setprecision(2);
 	auto obj = new nnetwork<
-		linear<784, 32>,
+		linear<784, 512>,
 		relu,
-		linear<32, 32>,
+		linear<512, 256>,
 		relu,
-		linear<32, 10>,
+		linear<256, 10>,
 		softmax
 	>();
 	auto& net = *obj;
@@ -78,6 +77,8 @@ int main()
 		ifstream x_file("train_x.txt");
 		ifstream y_file("train_y.txt");
 		int _Iter = 0;
+		size_t _Iters_total = 20;
+		double _Acc_sum = 0;
 		while (bar) {
 			tensor<batch, 784> train_data;
 			tensor<batch, 10> train_results(0);
@@ -91,15 +92,19 @@ int main()
 			}
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, sgd>(train_results);
-			if (_Iter % 20 == 0) {
+			_Acc_sum += accuracy(preds, train_results);
+			if (_Iter % _Iters_total == 19) {
 				bar.update([](double x, double y, double z, int e) {
-					cout << "loss: " << x << ", lr: " << y << ", acc: " << z << ", epochs: " << e;
+					cout << std::setprecision(5) << "loss: " << x
+						<< ", lr: " << y << std::setprecision(2)
+						<< ", acc: " << z * 100 << "%, epochs: " << e;
 					},
 					xentropy.compute(preds, train_results),
-						sgd::current_lr,
-						accuracy(preds, train_results),
-						epoch
-						);
+					sgd::current_lr,
+					_Acc_sum / _Iters_total,
+					epoch
+				);
+				_Acc_sum = 0;
 			}
 			++_Iter;
 		}
@@ -110,9 +115,9 @@ int main()
 	
 	ifstream x_valid("train_x.txt");
 	ifstream y_valid("train_y.txt");
-	tensor<10000, 784> x_valid_tensor;
-	tensor<10000, 10> y_valid_tensor;
-	for (int i = 0; i < 10000; ++i) {
+	tensor<1000, 784> x_valid_tensor;
+	tensor<1000, 10> y_valid_tensor;
+	for (int i = 0; i < 1000; ++i) {
 		for (int j = 0; j < 784; ++j) {
 			x_valid >> x_valid_tensor[i][j];
 		}
