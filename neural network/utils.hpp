@@ -40,14 +40,10 @@ namespace network {
 	template <range _Range>
 	inline void fill_randn(_Range& _Rng) {
 		std::mt19937 engine(time(NULL));
-		std::normal_distribution<double> normal(.5, .13);
-
-		auto next = [&]() constexpr {
-			double v = normal(engine);
-			return v < 0 ? 0 : v > 1 ? 1 : v;
-		};
+		std::normal_distribution<double> normal(0, 1);
+		
 		for (auto& _Val : _Rng) {
-			_Val = next() - .5;
+			_Val = normal(engine) * 0.1;
 		}
 	};
 
