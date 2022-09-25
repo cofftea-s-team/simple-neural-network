@@ -30,8 +30,8 @@ namespace network {
 			auto _D_it = _Ders.begin();
 
 			for (; _W_it != _Weights.end(); ++_W_it, ++_D_it, ++_M_it) {
-				*_W_it -= current_lr * *_D_it + momentum * *_M_it;
-				*_M_it = *_D_it;
+				*_M_it = -current_lr * *_D_it + momentum * *_M_it;
+				*_W_it += *_M_it;
 			}
 
 			auto front_ptr = tensor_momentums.front();
@@ -41,6 +41,13 @@ namespace network {
 			
 
 			++iters;
+		}
+
+		static void reset() {
+			lr = 1;
+			momentum = 0.9;
+			iters = 0;
+			current_lr = 0;
 		}
 		
 		static size_t iters;
@@ -52,8 +59,8 @@ namespace network {
 		static linkedlist<any_tensor*> tensor_momentums;
 	};
 	inline double sgd::lr = 0.1;
-	inline double sgd::decay = 0.000001;
-	inline double sgd::momentum = 0.7;
+	inline double sgd::decay = 5e-3;
+	inline double sgd::momentum = 0.9;
 	inline size_t sgd::iters = 0;
 	inline size_t sgd::layer_count = 0;
 	inline double sgd::current_lr = 0;
