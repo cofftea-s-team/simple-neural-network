@@ -23,6 +23,7 @@ using namespace pipeline;
 
 template <size_t _Batch, size_t M>
 inline double accuracy(const tensor<_Batch, M>& _Predictions, const tensor<_Batch, M>& _Targets) {
+<<<<<<< Updated upstream
 	double correct = 0;
 	for (size_t i = 0; i < _Batch; ++i) {
 		auto max = _Predictions[i][0];
@@ -38,6 +39,21 @@ inline double accuracy(const tensor<_Batch, M>& _Predictions, const tensor<_Batc
 		}
 	}
 	return correct / _Batch;
+=======
+	double _Acc = 0.0;
+	for (size_t i = 0; i < _Batch; ++i) {
+		size_t _Max = 0;
+		for (size_t j = 1; j < M; ++j) {
+			if (_Predictions[i][j] > _Predictions[i][_Max]) {
+				_Max = j;
+			}
+		}
+		if (_Targets[i][_Max] == 1.0) {
+			_Acc += 1.0;
+		}
+	}
+	return _Acc / _Batch;
+>>>>>>> Stashed changes
 }
 
 int main()
@@ -46,14 +62,17 @@ int main()
 	std::cin.tie(0);
 	cout << std::fixed << std::setprecision(5);
 	auto obj = new nnetwork<
-		linear<784, 16>,
+		linear<784, 32>,
 		relu,
-		linear<16, 10>,
+		linear<32, 32>,
+		relu,
+		linear<32, 10>,
 		softmax
 	>();
 	auto& net = *obj;
 	sizeof(net);
 
+<<<<<<< Updated upstream
 	constexpr int batch = 256;
 	constexpr int _Epoch = 40;
 	
@@ -61,6 +80,19 @@ int main()
 		progress_bar bar(32);
 		ifstream x_file("train_x.txt");
 		ifstream y_file("train_y.txt");
+=======
+	ifstream x_file("train_x.txt");
+	ifstream y_file("train_y.txt");
+
+	constexpr int batch = 128;
+	constexpr int _Epochs = 20;
+	
+	for (int epoch = 0; epoch < _Epochs; ++epoch) {
+		progress_bar bar(10);
+		ifstream x_file("train_x.txt");
+		ifstream y_file("train_y.txt");
+		int _Iter = 0;
+>>>>>>> Stashed changes
 		while (bar) {
 			tensor<batch, 784> train_data;
 			tensor<batch, 10> train_results(0);
@@ -72,6 +104,7 @@ int main()
 				y_file >> x;
 				train_results[i][x] = 1;
 			}
+<<<<<<< Updated upstream
 
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, sgd>(train_results);
@@ -85,6 +118,27 @@ int main()
 		y_file.close();
 	}
 
+=======
+			auto preds = net.forward(train_data);
+			net.backward<xentropy_loss, sgd>(train_results);
+			if (_Iter % 20 == 0) {
+				bar.update([](double x, double y, double z, int e) {
+					cout << "loss: " << x << ", lr: " << y << ", acc: " << z << ", epochs: " << e;
+					},
+					xentropy.compute(preds, train_results),
+						sgd::current_lr,
+						accuracy(preds, train_results),
+						epoch
+						);
+			}
+			++_Iter;
+		}
+		std::cout << endl;
+		x_file.close();
+		y_file.close();
+	}
+	
+>>>>>>> Stashed changes
 	ifstream x_valid("train_x.txt");
 	ifstream y_valid("train_y.txt");
 	tensor<10000, 784> x_valid_tensor;

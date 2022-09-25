@@ -93,8 +93,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+<<<<<<< Updated upstream
       <HeapReserveSize>
       </HeapReserveSize>
+=======
+>>>>>>> Stashed changes
       <StackReserveSize>2147483648</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
@@ -113,8 +116,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+<<<<<<< Updated upstream
       <HeapReserveSize>
       </HeapReserveSize>
+=======
+>>>>>>> Stashed changes
       <StackReserveSize>2147483648</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
@@ -130,8 +136,11 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <StackReserveSize>2147483648</StackReserveSize>
+<<<<<<< Updated upstream
       <HeapReserveSize>
       </HeapReserveSize>
+=======
+>>>>>>> Stashed changes
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,8 +159,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <StackReserveSize>2147483648</StackReserveSize>
+<<<<<<< Updated upstream
       <HeapReserveSize>
       </HeapReserveSize>
+=======
+>>>>>>> Stashed changes
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
