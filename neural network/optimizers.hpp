@@ -58,15 +58,9 @@ namespace network {
 		static size_t layer_count;
 		static linkedlist<any_tensor*> tensor_momentums;
 	};
-<<<<<<< Updated upstream
-	inline double sgd::lr = 0.1;
-	inline double sgd::decay = 1e-3;
-	inline double sgd::momentum = 0.7;
-=======
 	inline double sgd::lr = 0.5;
 	inline double sgd::decay = 1e-3;
 	inline double sgd::momentum = 0.9;
->>>>>>> Stashed changes
 	inline size_t sgd::iters = 0;
 	inline size_t sgd::layer_count = 0;
 	inline double sgd::current_lr = 0;
