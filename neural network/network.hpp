@@ -23,6 +23,7 @@ namespace network {
 
 		constexpr nnetwork() {
 			sgd::layer_count = sizeof...(_Args);
+			adam::layer_count = sizeof...(_Args);
 		}
 
 		template <size_t _Batch, size_t M>
