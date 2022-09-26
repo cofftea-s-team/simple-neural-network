@@ -28,7 +28,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{D3746B61-1137-4DE9-BAD2-804DB5BC9943}</ProjectGuid>
+    <ProjectGuid>{6EE1412B-C032-491F-BCC8-9DDE548F27A4}</ProjectGuid>
     <RootNamespace>neural_network_cuda</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
