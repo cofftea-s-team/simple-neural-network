@@ -19,7 +19,7 @@ inline _Ty* cuda_alloc(size_t _Count) {
 void __dot_a_b_add_c(const double* a, const double* b, const double* c, double* d, size_t N, size_t M, size_t M1);
 void __dot_a_transpose_b(const double* a, const double* b, double* d, size_t N, size_t M, size_t M1);
 void __dot_transpose_a_b(const double* a, const double* b, double* d, size_t N, size_t M, size_t M1);
-
+void __mul_a_b(double* a, const double* b, size_t N, size_t M);
 template <class _Ty, size_t N, size_t M>
 inline void print_matrix(const _Ty(&_Arr)[N][M]) {
     for (auto&& row : _Arr) {

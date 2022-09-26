@@ -83,6 +83,12 @@ namespace network {
 		return _Res;
 	}
 
+	template <size_t N, size_t M>
+	inline void mul_a_b(tensor<N, M>& A, const tensor<N, M>& B) {
+		auto a = reinterpret_cast<double*>(A.data());
+		auto b = reinterpret_cast<const double*>(B.data());
+		__mul_a_b(a, b, N, M);
+	}
 #ifdef _STD
 }
 #include <sstream>
