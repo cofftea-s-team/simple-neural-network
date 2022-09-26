@@ -59,10 +59,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\kubsn\source\repos\DataStructures\DataStructures;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\kubsn\source\repos\DataStructures\DataStructures;D:\Data-Structures\DataStructures;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\kubsn\source\repos\DataStructures\DataStructures;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\kubsn\source\repos\DataStructures\DataStructures;D:\Data-Structures\DataStructures;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
