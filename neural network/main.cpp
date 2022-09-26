@@ -53,11 +53,11 @@ int main()
 	std::cin.tie(0);
 	cout << std::fixed << std::setprecision(2);
 	auto obj = new nnetwork<
-		linear<784, 512>,
+		linear<784, 256>,
 		relu,
-		linear<512, 256>,
+		linear<256, 128>,
 		relu,
-		linear<256, 10>,
+		linear<128, 10>,
 		softmax
 	>();
 	auto& net = *obj;
@@ -69,7 +69,7 @@ int main()
 	ifstream x_file("train_x.txt");
 	ifstream y_file("train_y.txt");
 
-	constexpr int batch = 128;
+	constexpr int batch = 256;
 	constexpr int _Epochs = 20;
 	
 	for (int epoch = 0; epoch < _Epochs; ++epoch) {
@@ -77,7 +77,7 @@ int main()
 		ifstream x_file("train_x.txt");
 		ifstream y_file("train_y.txt");
 		int _Iter = 0;
-		size_t _Iters_total = 20;
+		size_t _Iters_total = 10;
 		double _Acc_sum = 0;
 		while (bar) {
 			tensor<batch, 784> train_data;
@@ -93,7 +93,7 @@ int main()
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, sgd>(train_results);
 			_Acc_sum += accuracy(preds, train_results);
-			if (_Iter % _Iters_total == 19) {
+			if (_Iter % _Iters_total == _Iters_total - 1) {
 				bar.update([](double x, double y, double z, int e) {
 					cout << std::setprecision(5) << "loss: " << x
 						<< ", lr: " << y << std::setprecision(2)

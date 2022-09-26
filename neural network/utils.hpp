@@ -79,7 +79,7 @@ namespace network {
 		auto a = reinterpret_cast<const double*>(A.data());
 		auto b = reinterpret_cast<const double*>(B.data());
 		auto d = reinterpret_cast<double*>(_Res.data());
-		__dot_a_transpose_b(a, b, d, N, M, M1);
+		__dot_transpose_a_b(a, b, d, N, M, M1);
 		return _Res;
 	}
 
