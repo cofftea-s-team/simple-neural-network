@@ -83,11 +83,35 @@ void __dot_transpose_a_b(const double* a, const double* b, double* d, size_t N, 
 	cudaMemcpy(_A, a, N * M * sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(_B, b, M * M1 * sizeof(double), cudaMemcpyHostToDevice);
 
-	__dot_transpose_a_b_kernel << <N, M1 >> > (_A, _B, _D, N, M, M1); // applies dot on transposed a, b
+	__dot_transpose_a_b_kernel<<<N, M1>>> (_A, _B, _D, N, M, M1); // applies dot on transposed a, b
 	cudaDeviceSynchronize();
 
 	cudaMemcpy(d, _D, N * M1 * sizeof(double), cudaMemcpyDeviceToHost); // copy result to host
 	cudaFree(_A);
 	cudaFree(_B);
 	cudaFree(_D);
+}
+
+__global__
+void __mul_a_b_kernel(double* _A, double* _B, size_t N, size_t M) {
+	int i = blockIdx.x;
+	int j = threadIdx.x;
+
+	*(_A + i * M + j) *= *(_B + i * M + j);
+}
+
+void __mul_a_b(double* a, const double* b, size_t N, size_t M)
+{
+	auto _A = cuda_alloc<double>(N * M);
+	auto _B = cuda_alloc<double>(M * M);
+
+	cudaMemcpy(_A, a, N * M * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(_B, b, N * M * sizeof(double), cudaMemcpyHostToDevice);
+
+	__mul_a_b_kernel<<<N, M>>> (_A, _B, N, M); // applies dot on transposed a, b
+	cudaDeviceSynchronize();
+
+	cudaMemcpy(a, _A, N * M * sizeof(double), cudaMemcpyDeviceToHost); // copy result to host
+	cudaFree(_A);
+	cudaFree(_B);
 }

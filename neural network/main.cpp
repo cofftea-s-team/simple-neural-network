@@ -57,6 +57,11 @@ using nn = nnetwork<
 	softmax
 >;
 
+
+inline void save_tmp(nn& net) {
+	nnfile().save(net, "nettmp.cofftea");
+}
+
 void test_coffee_data(nn& net) {
 	tensor<10, 784> _Input;
 	for (int i = 0; i < 10; ++i) {
@@ -70,40 +75,32 @@ void test_coffee_data(nn& net) {
 	net.predict(_Input).print();
 }
 
-
-int main()
-{
-	std::ios_base::sync_with_stdio(false);
-	std::cin.tie(0);
-	cout << std::fixed << std::setprecision(2);
-	auto obj = new nn();
-	auto& net = *obj;
-	sizeof(net);
-//	nnfile().load(net, "netdata.cofftea");
-	//net.reset_layers<2>();
-//	net.freeze_layers<0, 1>();
-	/*
-	tensor<1, 784> siedem_iks;
-	tensor<1, 10> siedem_prawda(0);
-	siedem_prawda[0][7] = 1;
-	ifstream file("7.txt");
-	progress_bar bar(20);
-	adam::lr = 1e-5;
-	for (int i = 0; bar; ++i) {
-		auto przewidywany_wynik = net.forward(siedem_iks);
-		net.backward<xentropy_loss, adam>(siedem_prawda);
-
-		if (i % 44 == 0) bar.update();
+void make_tests(nn& net) {
+	ifstream x_valid("test_x.txt");
+	ifstream y_valid("test_y.txt");
+	tensor<10000, 784> x_valid_tensor;
+	tensor<10000, 10> y_valid_tensor(0);
+	for (int i = 0; i < 10000; ++i) {
+		for (int j = 0; j < 784; ++j) {
+			x_valid >> x_valid_tensor[i][j];
+		}
+		int y;
+		y_valid >> y;
+		y_valid_tensor[i][y] = 1;
 	}
+	x_valid.close();
+	y_valid.close();
 
-	test_coffee_data(net);*/
-
+	auto preds = net.forward(x_valid_tensor);
+	cout << "accuracy: " << accuracy(preds, y_valid_tensor) << endl;
+}
+void train(nn& net) {
 	ifstream x_file("train_x.txt");
 	ifstream y_file("train_y.txt");
 
 	constexpr int batch = 512;
 	constexpr int _Epochs = 10;
-	
+
 	for (int epoch = 0; epoch < _Epochs; ++epoch) {
 		progress_bar bar(9);
 		ifstream x_file("train_x.txt");
@@ -132,9 +129,9 @@ int main()
 						<< ", acc: " << z * 100 << "%, epochs: " << e;
 					},
 					xentropy.compute(preds, train_results),
-					adam::current_lr,
-					_Acc_sum / _Iters_total,
-					epoch
+						adam::current_lr,
+						_Acc_sum / _Iters_total,
+						epoch
 				);
 				_Acc_sum = 0;
 			}
@@ -143,25 +140,45 @@ int main()
 		std::cout << endl;
 		x_file.close();
 		y_file.close();
+		save_tmp(net);
 	}
-	
-	ifstream x_valid("test_x.txt");
-	ifstream y_valid("test_y.txt");
-	tensor<10000, 784> x_valid_tensor;
-	tensor<10000, 10> y_valid_tensor(0);
-	for (int i = 0; i < 10000; ++i) {
-		for (int j = 0; j < 784; ++j) {
-			x_valid >> x_valid_tensor[i][j];
-		}
-		int y;
-		y_valid >> y;
-		y_valid_tensor[i][y] = 1;
-	}
-	x_valid.close();
-	y_valid.close();
+}
+void train_siedem(nn& net) {
+	net.freeze_layers<0, 1, 2>();
 
-	auto preds = net.forward(x_valid_tensor);
-	cout << "accuracy: " << accuracy(preds, y_valid_tensor) << endl;
+	tensor<1, 784> siedem_iks;
+	tensor<1, 10> siedem_prawda(0);
+	siedem_prawda[0][7] = 1;
+	ifstream file("7.txt");
+	for (int i = 0; i < 784; ++i) file >> siedem_iks[0][i];
+	progress_bar bar(20);
+	adam::lr = 5e-6;
+	for (int i = 0; bar; ++i) {
+		auto przewidywany_wynik = net.forward(siedem_iks);
+		net.backward<xentropy_loss, adam>(siedem_prawda);
+
+		if (i % 45 == 0) bar.update();
+	}
+}
+
+
+
+int main()
+{
+	std::ios_base::sync_with_stdio(false);
+	std::cin.tie(0);
+	cout << std::fixed << std::setprecision(2);
+	auto obj = new nn();
+	auto& net = *obj;
+	sizeof(net);
+	//nnfile().load(net, "netdata.cofftea");
+	//net.reset_layers<2>();
+	//adam::lr = 0.001;
+	//train_siedem(net);
+	train(net);
+	test_coffee_data(net);
+	make_tests(net);
+
 
 	if (confirm_save()) 
 		nnfile().save(net, "netdata.cofftea");

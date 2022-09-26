@@ -67,7 +67,7 @@ namespace network {
 				
 				_Fn.backward_apply(fwd);
 				fwd.mul(err); // error
-				
+				//mul_a_b(fwd, err); // not so efficient :(
 				_Forward_results.push_back(reinterpret_cast<any_tensor*>(_Layer.backward(fwd)));
 				_Layer.update<_Optimizer_fn>(inputs, fwd);
 
