@@ -168,8 +168,7 @@ int main()
 	std::ios_base::sync_with_stdio(false);
 	std::cin.tie(0);
 	cout << std::fixed << std::setprecision(2);
-	auto obj = new nn();
-	auto& net = *obj;
+	nn net;
 	sizeof(net);
 	//nnfile().load(net, "netdata.cofftea");
 	//net.reset_layers<2>();

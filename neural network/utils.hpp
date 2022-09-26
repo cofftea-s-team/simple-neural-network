@@ -53,23 +53,20 @@ namespace network {
 	using tensor = matrix<double, N, M>;
 
 	template <size_t N, size_t M, size_t M1>
-	inline auto dot_a_b_add_c(const tensor<N, M>& A, const tensor<M, M1>& B, const tensor<1, M1>& C) {
+	inline auto dot_a_b_add_c(const tensor<N, M>& A, const double* B, const double* C) {
 		tensor<N, M1> _Res;
 		auto a = reinterpret_cast<const double*>(A.data());
-		auto b = reinterpret_cast<const double*>(B.data());
-		auto c = reinterpret_cast<const double*>(C.data());
 		auto d = reinterpret_cast<double*>(_Res.data());
-		__dot_a_b_add_c(a, b, c, d, N, M, M1);
+		__dot_a_b_add_c(a, B, C, d, N, M, M1);
 		return _Res;
 	}
 
 	template <size_t N, size_t M, size_t M1>
-	inline auto dot_a_transpose_b(const tensor<N, M>& A, const tensor<M1, M>& B) {
+	inline auto dot_a_transpose_b(const tensor<N, M>& A, const double* B) {
 		auto _Res = new tensor<N, M1>();
 		auto a = reinterpret_cast<const double*>(A.data());
-		auto b = reinterpret_cast<const double*>(B.data());
 		auto d = reinterpret_cast<double*>(_Res->data());
-		__dot_a_transpose_b(a, b, d, N, M, M1);
+		__dot_a_transpose_b(a, B, d, N, M, M1);
 		return _Res;
 	}
 

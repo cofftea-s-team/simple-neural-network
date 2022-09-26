@@ -57,6 +57,7 @@ namespace network {
 			auto& _Preds = *reinterpret_cast<tensor<_Batch, M>*>(_Forward_results.back());
 			_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(new auto(_Loss_fn::backward(_Preds, _Output))));
 			for_each<false, std::tuple_size_v<linears> - 1>([&]<size_t N1, size_t M1>(linear<N1, M1>& _Layer, auto&& _Fn) -> void {
+
 				auto& err = *reinterpret_cast<tensor<_Batch, M1>*>(_Forward_results.back()); // error
 				_Forward_results.pop_back();
 				auto& fwd = *reinterpret_cast<tensor<_Batch, M1>*>(_Forward_results.back()); // wyjscie z aktywacyjnej
@@ -68,7 +69,9 @@ namespace network {
 				_Fn.backward_apply(fwd);
 				fwd.mul(err); // error
 				//mul_a_b(fwd, err); // not so efficient :(
+
 				_Forward_results.push_back(reinterpret_cast<any_tensor*>(_Layer.backward(fwd)));
+
 				_Layer.update<_Optimizer_fn>(inputs, fwd);
 
 				//delete &inputs;
@@ -106,7 +109,8 @@ namespace network {
 
 	private:
 		template <size_t _Batch, size_t N, size_t M>
-		inline auto& _Return_last(linear<N, M>) {
+		inline auto& _Return_last(linear<N, M>&) {
+			//5f.check();
 			return *reinterpret_cast<tensor<_Batch, M>*>(_Forward_results.back());
 		}
 
