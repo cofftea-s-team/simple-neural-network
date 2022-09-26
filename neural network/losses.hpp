@@ -5,7 +5,7 @@
 #include <cmath>
 #include "utils.hpp"
 
-namespace network {
+namespace cuda_network {
 	
 	struct xentropy_loss {	
 		template <range _Range>

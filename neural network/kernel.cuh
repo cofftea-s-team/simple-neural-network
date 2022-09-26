@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <iostream>
-namespace network {
+namespace cuda_network {
 	template <class _Ty>
 	inline _Ty* cuda_alloc(size_t _Count) {
 		_Ty* _Ptr;

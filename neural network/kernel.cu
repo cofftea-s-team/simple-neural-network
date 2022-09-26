@@ -1,6 +1,6 @@
 #include "kernel.cuh"
 
-namespace network {
+namespace cuda_network {
 	__global__
 	void __dot_a_b_add_c_kernel(const double* _A, const double* _B, const double* _C, double* _D, size_t N, size_t M, size_t M1) {
 		int i = blockIdx.x;

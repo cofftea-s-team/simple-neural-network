@@ -5,7 +5,7 @@
 #include <utility.h>
 #include "kernel.cuh"
 
-namespace network {
+namespace cuda_network {
 	template<bool>
 	struct zero_or_one {
 		template<class E> using type = std::tuple<E>;
@@ -89,7 +89,7 @@ namespace network {
 #ifdef _STD
 }
 #include <sstream>
-namespace network {
+namespace cuda_network {
 	template <class... Args>
 	constexpr _STD string to_string(Args&&... _Args) {
 		static_assert(sizeof...(_Args) != 0, "to_string() requires at least one argument");

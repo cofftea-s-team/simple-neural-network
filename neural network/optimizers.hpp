@@ -4,7 +4,7 @@
 #include <linkedlist.h>
 #include "utils.hpp"
 
-namespace network {
+namespace cuda_network {
 	using any_tensor = _Empty;
 	struct sgd {
 		template <size_t N, size_t M>

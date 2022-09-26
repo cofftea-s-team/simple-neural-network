@@ -16,7 +16,7 @@ using std::ofstream;
 #include "nnfile.hpp"
 #include "progress_bar.h"
 
-using namespace network;
+using namespace cuda_network;
 using namespace pipeline;
 
 

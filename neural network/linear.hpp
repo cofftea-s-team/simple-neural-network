@@ -4,7 +4,7 @@
 #include <matrix.h>
 #include "utils.hpp"
 
-namespace network {
+namespace cuda_network {
 
 	template <size_t N, size_t M>
 	struct linear

@@ -12,7 +12,7 @@
 #include "losses.hpp"
 #include "optimizers.hpp"
 
-namespace network {
+namespace cuda_network {
 
 	template <class... _Args>
 	class nnetwork {
@@ -116,7 +116,7 @@ namespace network {
 
 		inline void _Reload() {
 			new(&_Forward_results) vector<any_tensor*>();
-			for_each([&]<size_t N1, size_t M1>(linear<N1, M1>& _Layer, auto && _Fn) -> void {
+			for_each([&]<size_t N1, size_t M1>(linear<N1, M1>& _Layer, auto&& _Fn) -> void {
 				new (&_Fn) remove_reference_t<decltype(_Fn)>();
 				_Layer.freeze(false);
 			});

@@ -4,7 +4,7 @@
 #include <cmath>
 #include "utils.hpp"
 
-namespace network {
+namespace cuda_network {
 	
 	struct base_activation {
 		template <range _Range>

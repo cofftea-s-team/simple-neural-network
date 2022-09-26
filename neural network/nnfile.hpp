@@ -6,7 +6,7 @@
 #include "network.hpp"
 #include <fstream>
 
-namespace network {
+namespace cuda_network {
 	
 	using std::ifstream;
 	using std::ofstream;
