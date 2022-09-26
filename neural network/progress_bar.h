@@ -53,8 +53,8 @@ namespace __Progress_bar {
 		using iterator = _Loading_bar_iterator;
 		friend struct iterator;
 
-		inline progress_bar(size_t _MaxVal)
-			: _Max(_MaxVal) , _Begin_pos(_Get_cursor_pos())
+		inline progress_bar(size_t _MaxVal, size_t _Sub_steps_count = 1)
+			: _Max(_MaxVal) , _Begin_pos(_Get_cursor_pos()), _Sub_step_max(_Sub_steps_count)
 		{
 			_Show_console_cursor(false);
 			_Prev_cp = GetConsoleOutputCP();
@@ -71,13 +71,18 @@ namespace __Progress_bar {
 
 		template <class _Lambda, class... _FnArgs>
 		inline bool update(_Lambda&& _Post_text_fn, _FnArgs&&... _Args) {
-			_Clear_post_text();
-			_Update();
-			++_Curr;
+
+			if (++_Sub_step % _Sub_step_max == 0) {
+				_Clear_post_text();
+				_Update();
+				++_Curr;
+				_Sub_step = 0;
+			}
+			
 			
 			_Set_cursos_pos(_Bar_length + 3, _Begin_pos.Y);
 			_Post_text_fn(forward<_FnArgs>(_Args)...);
-			_Post_text_length = _Get_cursor_pos().X - _Begin_pos.X - _Bar_length - 1;
+			_Post_text_length = _Get_cursor_pos().X - _Begin_pos.X - _Bar_length;
 			
 			if (_Curr > _Max >> 4) {
 				_Print_estimated_time();
@@ -89,25 +94,47 @@ namespace __Progress_bar {
 			
 			return true;
 		}
+
 		inline void clear() {
 			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y);
 			for (int i = 0; i < _Bar_length + _Post_text_length + 4; ++i)
 				cout << bg_char;
 			_Clear_estimated_time();
 		}
+
 		constexpr size_t size() const noexcept {
 			return _Max;
 		}
+
 		constexpr operator bool() const {
 			return _Curr != _Max;
 		}
+
 		constexpr friend bool operator<(const size_t& _Val, const progress_bar& _Bar) {
 			return _Val < _Bar._Max;
 		}
+
 		_CONSTEXPR17 auto begin();
 		constexpr auto end() const {
 			return _Sentinel{};
 		}
+
+		constexpr size_t max() const {
+			return _Max;
+		}
+
+		constexpr size_t sub_step_count() const {
+			return _Sub_step_max;
+		}
+
+		constexpr size_t pos() const {
+			return _Curr;
+		}
+
+		constexpr size_t sub_pos() const {
+			return _Sub_step;
+		}
+
 		static constexpr char bg_char = ' ';
 	private:
 		inline void _Update() const {
@@ -119,24 +146,31 @@ namespace __Progress_bar {
 			}
 			
 		}
+
 		inline void _Clear_post_text() const {
 			_Set_cursos_pos(_Bar_length + 3, _Begin_pos.Y);
 			for (size_t i = 0; i < _Post_text_length; ++i)
 				cout << bg_char;
 		}
+
 		inline void _Print_estimated_time() const {
 			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y + 1);
 			cout << "Estimated time: " << _Get_estimated_time() << " ms";
 		}
+
 		inline size_t _Get_estimated_time() const {
 			clock_t _Curr_time = clock();
-			return (_Curr_time - _Begin_time) * (_Max - _Curr + 1) / (_Curr + 1);
+			size_t _Time_diff = _Curr_time - _Begin_time;
+			size_t _Current_progress = _Curr * _Sub_step_max + _Sub_step;
+			return _Time_diff * ((_Max * _Sub_step_max) - _Current_progress + 1) / (_Current_progress + 1);
 		}
+
 		inline void _Clear_estimated_time() const {
 			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y + 1);
 			for (size_t i = 0; i < 40; ++i)
 				cout << bg_char;
 		}
+
 		inline void _Finish() const {
 			_Clear_estimated_time();
 			_Set_cursos_pos(_Begin_pos.X, _Begin_pos.Y);
@@ -144,6 +178,7 @@ namespace __Progress_bar {
 			cout << endl;
 			_Show_console_cursor(true);
 		}
+
 		int _Prev_cp;
 		size_t _Curr = 0;
 		const size_t _Max;
@@ -152,6 +187,8 @@ namespace __Progress_bar {
 		size_t _Post_text_length = 0;
 		const COORD _Begin_pos;
 		clock_t _Begin_time;
+		size_t _Sub_step = 0;
+		size_t _Sub_step_max = 1;
 	};
 
 	struct _Loading_bar_iterator {

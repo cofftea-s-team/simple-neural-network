@@ -47,19 +47,16 @@ bool confirm_save() {
 }
 
 using nn = nnetwork<
-	linear<784, 512>,
+	linear<784, 384>,
 	relu,
-	linear<512, 256>,
+	linear<384, 128>,
 	relu,
-	linear<256, 128>,
-	relu,
-	linear<128, 10>,
+	linear<128, 10>,	
 	softmax
 >;
 
-
 inline void save_tmp(nn& net) {
-	nnfile().save(net, "nettmp.cofftea");
+	nnfile().save(net, "tmp");
 }
 
 void test_coffee_data(nn& net) {
@@ -94,6 +91,7 @@ void make_tests(nn& net) {
 	auto preds = net.forward(x_valid_tensor);
 	cout << "accuracy: " << accuracy(preds, y_valid_tensor) << endl;
 }
+
 void train(nn& net) {
 	ifstream x_file("train_x.txt");
 	ifstream y_file("train_y.txt");
@@ -102,11 +100,10 @@ void train(nn& net) {
 	constexpr int _Epochs = 10;
 
 	for (int epoch = 0; epoch < _Epochs; ++epoch) {
-		progress_bar bar(9);
+		size_t _Iters_total = 10;
+		progress_bar bar(9, _Iters_total);
 		ifstream x_file("train_x.txt");
 		ifstream y_file("train_y.txt");
-		int _Iter = 0;
-		size_t _Iters_total = 10;
 		double _Acc_sum = 0;
 		while (bar) {
 			tensor<batch, 784> train_data;
@@ -122,20 +119,19 @@ void train(nn& net) {
 			auto preds = net.forward(train_data);
 			net.backward<xentropy_loss, adam>(train_results);
 			_Acc_sum += accuracy(preds, train_results);
-			if (_Iter % _Iters_total == _Iters_total - 1) {
-				bar.update([](double x, double y, double z, int e) {
-					cout << std::setprecision(5) << "loss: " << x
+
+			bar.update([&](double x, double y, double z, int e) {
+					cout << std::setprecision(5) << "loss: " << x 
 						<< ", lr: " << y << std::setprecision(2)
 						<< ", acc: " << z * 100 << "%, epochs: " << e;
-					},
-					xentropy.compute(preds, train_results),
-						adam::current_lr,
-						_Acc_sum / _Iters_total,
-						epoch
-				);
-				_Acc_sum = 0;
-			}
-			++_Iter;
+					_Acc_sum = 0;
+				},
+				xentropy.compute(preds, train_results),
+				adam::current_lr,
+				_Acc_sum / (bar.sub_pos() + 1.),
+				epoch
+			);
+
 		}
 		std::cout << endl;
 		x_file.close();
@@ -143,6 +139,7 @@ void train(nn& net) {
 		save_tmp(net);
 	}
 }
+
 void train_siedem(nn& net) {
 	net.freeze_layers<0, 1, 2>();
 
@@ -161,25 +158,23 @@ void train_siedem(nn& net) {
 	}
 }
 
-
-
 int main()
 {
 	std::ios_base::sync_with_stdio(false);
 	std::cin.tie(0);
-	cout << std::fixed << std::setprecision(2);
+	cout << std::setprecision(2) << std::fixed;
+
 	nn net;
-	sizeof(net);
-	//nnfile().load(net, "netdata.cofftea");
-	//net.reset_layers<2>();
-	//adam::lr = 0.001;
+
+	nnfile().load(net, "tmp");
+
 	//train_siedem(net);
 	train(net);
-	test_coffee_data(net);
+	//test_coffee_data(net);
 	make_tests(net);
 
 
 	if (confirm_save()) 
-		nnfile().save(net, "netdata.cofftea");
+		nnfile().save(net, "master");
 	
 }

@@ -40,13 +40,13 @@ namespace cuda_network {
 		inline auto forward(const tensor<_Batch, M>& _Input) {
 			_Clean_up_forward_data();
 			
-			_Forward_results.push_back(reinterpret_cast<any_tensor*>(new auto(_Input)));
+			_Forward_results.push_back(reinterpret_cast<any_tensor*>(cuda_object_create<tensor<_Batch, M>>(_Input)));
 			for_each([&]<size_t N1, size_t M1>(const linear<N1, M1>& _Layer, auto&& _Fn) -> void {
 				auto& t = *reinterpret_cast<tensor<_Batch, N1>*>(_Forward_results.back());
 				_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(&t));
 				auto fwd = _Layer.forward(t);
 				_Fn.forward_apply(fwd);
-				_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(new auto(move(fwd))));
+				_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(cuda_object_create<tensor<_Batch, M1>>(move(fwd))));
 			});
 
 			return _Return_last<_Batch>(std::get<std::tuple_size_v<linears> - 1>(_Layers));
@@ -55,7 +55,7 @@ namespace cuda_network {
 		template <class _Loss_fn, class _Optimizer_fn, size_t _Batch, size_t M>
 		inline auto backward(const tensor<_Batch, M>& _Output) {
 			auto& _Preds = *reinterpret_cast<tensor<_Batch, M>*>(_Forward_results.back());
-			_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(new auto(_Loss_fn::backward(_Preds, _Output))));
+			_Forward_results.emplace_back(reinterpret_cast<any_tensor*>(cuda_object_create<tensor<_Batch, M>>(_Loss_fn::backward(_Preds, _Output))));
 			for_each<false, std::tuple_size_v<linears> - 1>([&]<size_t N1, size_t M1>(linear<N1, M1>& _Layer, auto&& _Fn) -> void {
 
 				auto& err = *reinterpret_cast<tensor<_Batch, M1>*>(_Forward_results.back()); // error
@@ -76,11 +76,11 @@ namespace cuda_network {
 
 				//delete &inputs;
 				
-				delete &err;
-				delete &fwd;
+				cuda_object_destroy(&err);
+				cuda_object_destroy(&fwd);
 			});
 			for (auto&& ptr : _Forward_results) 
-				delete ptr;
+				cuda_object_destroy(ptr);
 			_Forward_results.clear();
 		}
 		
@@ -110,7 +110,6 @@ namespace cuda_network {
 	private:
 		template <size_t _Batch, size_t N, size_t M>
 		inline auto& _Return_last(linear<N, M>&) {
-			//5f.check();
 			return *reinterpret_cast<tensor<_Batch, M>*>(_Forward_results.back());
 		}
 
@@ -164,7 +163,7 @@ namespace cuda_network {
 		}
 		inline void _Clean_up_forward_data() {
 			for (int i = 0; i < _Forward_results.size(); ++i) {
-				if ((i & 1) == 0) delete _Forward_results[i];
+				if ((i & 1) == 0) cuda_object_destroy(_Forward_results[i]);
 			}
 			_Forward_results.clear();
 		}
@@ -174,7 +173,6 @@ namespace cuda_network {
 		linears _Layers;
 		activations _Fns;
 		vector<any_tensor*> _Forward_results;
-	//	vector<any_tensor*> _Backward_results;
 	};
 }
 

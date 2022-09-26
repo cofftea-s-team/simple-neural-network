@@ -70,7 +70,7 @@ namespace cuda_network {
 		cudaMemcpy(_A, a, N * M * sizeof(double), cudaMemcpyHostToDevice);
 		cudaMemcpy(_B, b, M * M1 * sizeof(double), cudaMemcpyHostToDevice);
 
-		__dot_transpose_a_b_kernel<<<N, M1 >>>(_A, _B, _D, N, M, M1); // applies dot on transposed a, b
+		__dot_transpose_a_b_kernel<<<N, M1>>>(_A, _B, _D, N, M, M1); // applies dot on transposed a, b
 		cudaDeviceSynchronize();
 
 		cudaMemcpy(d, _D, N * M1 * sizeof(double), cudaMemcpyDeviceToHost); // copy result to host

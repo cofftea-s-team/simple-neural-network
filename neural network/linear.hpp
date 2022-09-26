@@ -9,30 +9,32 @@ namespace cuda_network {
 	template <size_t N, size_t M>
 	struct linear
 	{
+		friend class nnfile;
 		inline linear() {
 			tensor<N, M> w;
 			fill_randn(w);
 			tensor<1, M> b(0);
 			_Weights = alloc_in_cuda<N * M>(reinterpret_cast<double*>(w.data()));
 			_Biases = alloc_in_cuda<M>(reinterpret_cast<double*>(b.data()));
-
-			tensor<N, M> w2;
-			copy_to_host<N* M>(_Weights, reinterpret_cast<double*>(w2.data()));
 		}
+
 		inline ~linear() {
 			cudaFree(_Weights);
 			_Weights = nullptr;
 			cudaFree(_Biases);
 			_Biases = nullptr; 
 		}
+
 		template <size_t _Batch>
 		inline auto forward(const tensor<_Batch, N>& _Inputs) const {
 			return dot_a_b_add_c<_Batch, N, M>(_Inputs, _Weights, _Biases);
 		}
+
 		template <size_t _Batch>
 		inline auto backward(const tensor<_Batch, M>& _Ders) {
 			return dot_a_transpose_b<_Batch, M, N>(_Ders, _Weights);
 		}
+
 		template <class _Optimizer, size_t _Batch>
 		inline void update(tensor<_Batch, N>& _Input, const tensor<_Batch, M>& _Ders) {
 			if (_Freezed) return;
@@ -49,6 +51,7 @@ namespace cuda_network {
 			_Optimizer::update(b, _Sum_rows(_Ders)); // update biases
 			copy_to_cuda<M>(reinterpret_cast<double*>(b.data()), _Biases);
 		}
+
 		inline void reset() {
 			tensor<N, M> w;
 			fill_randn(w);
@@ -56,11 +59,21 @@ namespace cuda_network {
 			_Weights = alloc_in_cuda<N * M>(reinterpret_cast<double*>(w.data()));
 			_Biases = alloc_in_cuda<M>(reinterpret_cast<double*>(b.data()));
 		}
+
 		inline void freeze(bool _Val = true) {
 			_Freezed = _Val;
 		}
-		void check() const {
+
+		inline void check() const {
 			check_cuda_ptr(_Weights);
+		}
+
+		inline double* get_weights() {
+			return _Weights;
+		}
+
+		inline double* get_biases() {
+			return _Biases;
 		}
 	private:
 		template <size_t _Batch>

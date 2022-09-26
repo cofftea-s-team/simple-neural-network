@@ -9,8 +9,7 @@ namespace cuda_network {
 	struct base_activation {
 		template <range _Range>
 		inline void forward_apply(_Range& _Rng) const {
-			for (auto&& e : _Rng) 
-				e = forward(e);
+			for (auto&& e : _Rng) e = forward(e);
 		}
 		template <range _Range>
 		inline void backward_apply(_Range& _Rng) const {
@@ -54,16 +53,17 @@ namespace cuda_network {
 		template <range _Range>
 		inline void forward_apply(_Range& _Rng) const {
 			for (int i = 0; i < _Rng.rows(); ++i) {
-				for (auto&& e : _Rng[i]) e = std::exp(e);
-				double _Sum = ::utils::sum(_Rng[i], _Rng[i] + _Rng.columns());
+				double _Sum = 0;
+				for (auto&& e : _Rng[i]) _Sum += e = std::exp(e);
 				for (auto&& e : _Rng[i]) e /= _Sum;
 			}
-			// check for NaN
-			/*for (auto&& e : _Rng) {
+#ifdef DEBUG
+			for (auto&& e : _Rng) {
 				if (std::isnan(e)) {
 					std::cout << "NaN detected in softmax forward pass" << std::endl;
 				}
-			}*/
+			}
+#endif
 		}
 		constexpr double forward(double x) const override {
 			return x;

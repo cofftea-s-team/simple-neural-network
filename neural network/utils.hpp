@@ -63,7 +63,7 @@ namespace cuda_network {
 
 	template <size_t N, size_t M, size_t M1>
 	inline auto dot_a_transpose_b(const tensor<N, M>& A, const double* B) {
-		auto _Res = new tensor<N, M1>();
+		auto _Res = cuda_object_create<tensor<N, M1>>();
 		auto a = reinterpret_cast<const double*>(A.data());
 		auto d = reinterpret_cast<double*>(_Res->data());
 		__dot_a_transpose_b(a, B, d, N, M, M1);

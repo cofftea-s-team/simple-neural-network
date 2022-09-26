@@ -64,7 +64,7 @@ namespace cuda_network {
 	inline size_t sgd::iters = 0;
 	inline size_t sgd::layer_count = 0;
 	inline double sgd::current_lr = 0;
-	inline linkedlist<any_tensor*> sgd::tensor_momentums;
+	inline linkedlist<any_tensor*> sgd::tensor_momentums; 
 
 	struct rmsprop {
 		template <size_t N, size_t M>
