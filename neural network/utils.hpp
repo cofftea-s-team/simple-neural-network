@@ -86,8 +86,10 @@ namespace cuda_network {
 		auto b = reinterpret_cast<const double*>(B.data());
 		__mul_a_b(a, b, N, M);
 	}
+
 #ifdef _STD
 }
+#define assert(_Condition, _Error_text) if (!_Condition) { _STD cerr << _Error_text << _STD endl; DebugBreak(); }
 #include <sstream>
 namespace cuda_network {
 	template <class... Args>

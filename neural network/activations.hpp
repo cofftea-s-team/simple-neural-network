@@ -3,6 +3,10 @@
 #include <algorithms.h>
 #include <cmath>
 #include "utils.hpp"
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#define NOMINMAX
+#include <windows.h>
 
 namespace cuda_network {
 	
@@ -55,15 +59,13 @@ namespace cuda_network {
 			for (int i = 0; i < _Rng.rows(); ++i) {
 				double _Sum = 0;
 				for (auto&& e : _Rng[i]) _Sum += e = std::exp(e);
-				for (auto&& e : _Rng[i]) e /= _Sum;
-			}
+				for (auto&& e : _Rng[i]) {
+					e /= _Sum;
 #ifdef DEBUG
-			for (auto&& e : _Rng) {
-				if (std::isnan(e)) {
-					std::cout << "NaN detected in softmax forward pass" << std::endl;
+					assert(std::isnan(e) == false, "[softmax] NaN detected!");
+#endif
 				}
 			}
-#endif
 		}
 		constexpr double forward(double x) const override {
 			return x;

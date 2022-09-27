@@ -123,7 +123,7 @@ namespace __Progress_bar {
 			return _Max;
 		}
 
-		constexpr size_t sub_step_count() const {
+		constexpr size_t sub_max() const {
 			return _Sub_step_max;
 		}
 
