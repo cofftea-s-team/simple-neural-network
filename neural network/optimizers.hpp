@@ -185,4 +185,75 @@ namespace cuda_network {
 	inline double adam::current_lr = 0;
 	inline linkedlist<any_tensor*> adam::tensor_cache;
 	inline linkedlist<any_tensor*> adam::tensor_momentums;
+
+	struct adamw {
+		template <size_t N, size_t M>
+		inline static void update(tensor<N, M>& _Weights, const tensor<N, M>& _Ders) {
+			if (decay != 0 && iters % layer_count == 0) {
+				current_lr = lr * (1. / (1. + decay * (2 * iters / layer_count)));
+			}
+			if (tensor_cache.size() != layer_count) {
+				tensor_cache.push_front(reinterpret_cast<any_tensor*>(new tensor<N, M>(0)));
+				tensor_momentums.push_front(reinterpret_cast<any_tensor*>(new tensor<N, M>(0)));
+			}
+
+			auto _M_it = reinterpret_cast<tensor<N, M>*>(tensor_momentums.front())->begin();
+			auto _V_it = reinterpret_cast<tensor<N, M>*>(tensor_cache.front())->begin();
+
+			auto _W_it = _Weights.begin();
+			auto _D_it = _Ders.begin();
+
+			for (; _W_it != _Weights.end(); ++_W_it, ++_D_it, ++_M_it, ++_V_it) {
+				*_M_it = beta1 * *_M_it + (1 - beta1) * *_D_it;
+				*_V_it = beta2 * *_V_it + (1 - beta2) * *_D_it * *_D_it;
+
+				auto _M_fixed = *_M_it / (1 - pow(beta1, iters + 1));
+				auto _V_fixed = *_V_it / (1 - pow(beta2, iters + 1));
+
+				*_W_it += -current_lr * _M_fixed / (sqrt(_V_fixed) + epsilon) - weight_decay * *_D_it;
+			}
+
+			auto front_ptr = tensor_cache.front();
+			tensor_cache.pop_front();
+			tensor_cache.push_back(front_ptr);
+
+			front_ptr = tensor_momentums.front();
+			tensor_momentums.pop_front();
+			tensor_momentums.push_back(front_ptr);
+			++iters;
+		}
+
+		static void reset() {
+			lr = 0.001;
+			epsilon = 1e-7;
+			beta1 = 0.9;
+			beta2 = 0.999;
+			weight_decay = 1e-4;
+			iters = 0;
+			current_lr = 0;
+		}
+		static size_t iters;
+		static double current_lr;
+		static double lr;
+		static double decay;
+		static double epsilon;
+		static double beta1;
+		static double beta2;
+		static double weight_decay;
+		static size_t layer_count;
+		static linkedlist<any_tensor*> tensor_cache;
+		static linkedlist<any_tensor*> tensor_momentums;
+	};
+	
+	inline double adamw::lr = 1e-3;
+	inline double adamw::decay = 1e-4;
+	inline double adamw::epsilon = 1e-7;
+	inline double adamw::beta1 = 0.9;
+	inline double adamw::beta2 = 0.999;
+	inline double adamw::weight_decay = 0.01;
+	inline size_t adamw::iters = 0;
+	inline size_t adamw::layer_count = 0;
+	inline double adamw::current_lr = 0;
+	inline linkedlist<any_tensor*> adamw::tensor_cache;
+	inline linkedlist<any_tensor*> adamw::tensor_momentums;
 }
