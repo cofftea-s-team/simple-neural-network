@@ -47,9 +47,11 @@ bool confirm_save() {
 }
 
 using nn = nnetwork<
-	linear<784, 384>,
+	linear<784, 512>,
 	relu,
-	linear<384, 128>,
+	linear<512, 256>,
+	relu,
+	linear<256, 128>,
 	relu,
 	linear<128, 10>,	
 	softmax
@@ -73,8 +75,8 @@ void test_coffee_data(nn& net) {
 }
 
 void make_tests(nn& net) {
-	ifstream x_valid("test_x.txt");
-	ifstream y_valid("test_y.txt");
+	ifstream x_valid("valid_x.txt");
+	ifstream y_valid("valid_y.txt");
 	tensor<10000, 784> x_valid_tensor;
 	tensor<10000, 10> y_valid_tensor(0);
 	for (int i = 0; i < 10000; ++i) {
@@ -98,6 +100,8 @@ void train(nn& net) {
 
 	constexpr int batch = 512;
 	constexpr int _Epochs = 10;
+	adamw::lr = 0.001;
+	adamw::weight_decay = 0.005;
 
 	for (int epoch = 0; epoch < _Epochs; ++epoch) {
 		size_t _Iters_total = 10;
@@ -117,18 +121,17 @@ void train(nn& net) {
 				train_results[i][x] = 1;
 			}
 			auto preds = net.forward(train_data);
-			net.backward<xentropy_loss, adam>(train_results);
+			net.backward<xentropy_loss, adamw>(train_results);
 			_Acc_sum += accuracy(preds, train_results);
 
 			bar.update([&](double x, double y, double z, int e) {
 					cout << std::setprecision(5) << "loss: " << x 
 						<< ", lr: " << y << std::setprecision(2)
 						<< ", acc: " << z * 100 << "%, epochs: " << e;
-					_Acc_sum = 0;
 				},
 				xentropy.compute(preds, train_results),
-				adam::current_lr,
-				_Acc_sum / (bar.sub_pos() + 1.),
+				adamw::current_lr,
+				_Acc_sum / ((bar.pos() * bar.sub_step_count() + bar.sub_pos() + 1) + 1.),
 				epoch
 			);
 
@@ -149,10 +152,10 @@ void train_siedem(nn& net) {
 	ifstream file("7.txt");
 	for (int i = 0; i < 784; ++i) file >> siedem_iks[0][i];
 	progress_bar bar(20);
-	adam::lr = 5e-6;
+	adamw::lr = 0.01;
 	for (int i = 0; bar; ++i) {
 		auto przewidywany_wynik = net.forward(siedem_iks);
-		net.backward<xentropy_loss, adam>(siedem_prawda);
+		net.backward<xentropy_loss, adamw>(siedem_prawda);
 
 		if (i % 45 == 0) bar.update();
 	}
@@ -166,7 +169,7 @@ int main()
 
 	nn net;
 
-	nnfile().load(net, "tmp");
+	//nnfile().load(net, "tmp");
 
 	//train_siedem(net);
 	train(net);
