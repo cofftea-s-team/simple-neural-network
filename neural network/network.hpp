@@ -136,7 +136,8 @@ namespace cuda_network {
 			auto& _Layer = get<_Idx>(_Layers);
 			_Layer.freeze();
 			sgd::layer_count -= 2;
-			
+			adam::layer_count -= 2;
+			adamw::layer_count -= 2;
 			if constexpr (sizeof...(_Indices) > 0) {
 				_Freeze_layers<_Indices...>();
 			}
